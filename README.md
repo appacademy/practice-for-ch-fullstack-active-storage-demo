@@ -22,7 +22,8 @@ to GitHub, you will need to set up new credentials for the app to run (see Step
 
 ## Step 0a: Sign up for an AWS account
 
-To use the S3 cloud storage service, you will need to create an AWS account, which you can do [here][aws-signup]. Select the free tier when asked.
+To use the S3 cloud storage service, you will need to create an AWS account,
+which you can do [here][aws-signup]. Select the free tier when asked.
 
 You will be asked for a credit card, but you will not be charged right away. It
 has happened, however, that students were charged because they exceeded the data
@@ -50,7 +51,9 @@ __.gitattributes__ files from the project solution or a prior project.
 
 Adjust your Gemfile as desired and `bundle install`.
 
-Create a simple `Post` model. It should have a string `title`. Set a database constraint and model validation to ensure that `title` is present. Create and migrate your database.
+Create a simple `Post` model. It should have a string `title`. Set a database
+constraint and model validation to ensure that `title` is present. Create and
+migrate your database.
 
 Good enough! You're ready to go!
 
@@ -67,7 +70,7 @@ called Active Storage. To set up Active Storage, do the following:
   tables for attachments, blobs, and variant records. Don't worry about the
   details of these tables; you won't need to know them.
 
-  > **Note:** If you want to install Active Storage on an Rails app created with
+  > **Note:** If you want to install Active Storage on a Rails app created with
   > the `--minimal` flag, you first need to uncomment the following two lines at
   > the top of __config/application.rb__:
 
@@ -146,10 +149,11 @@ In the new browser tab, click the `JSON` tab and paste the following:
 }
 ```
 
-Make sure to replace `<BUCKET-NAME-*>` with the appropriate bucket name. Click
-`Next: Tags` and then `Next: Review`. Give the policy whatever name you like
-(e.g., `s3-access-to-<name-of-project>`). After you save and create the policy,
-head back to the other tab where you are creating a new IAM user.
+Make sure to replace `<BUCKET-NAME-*>` with the appropriate bucket name, e.g.,
+`active-storage-demo-dev`. Click `Next: Tags` and then `Next: Review`. Give the
+policy whatever name you like (e.g., `s3-access-to-<name-of-project>`). After
+you save and create the policy, head back to the other tab where you are
+creating a new IAM user.
 
 Click the refresh button all the way to the right of the `Create Policy` button,
 then search for the policy that you just created. Check that policy then head to
@@ -164,7 +168,8 @@ create a new one.)
 Click to download the __.csv__ file. Store this somewhere safe on your computer.
 **NEVER PUSH THIS FILE (OR ITS CONTENTS) TO GITHUB OR POST IT ANYWHERE PUBLIC!**
 
-That's it! AWS should now be configured. Now you just have to convince Active Storage to use it!
+That's it! AWS should now be configured. Now you just have to convince Active
+Storage to use it!
 
 [video2]: https://vimeo.com/351474880
 [S3 console]: https://s3.console.aws.amazon.com/s3/home?region=us-east-1
@@ -263,7 +268,9 @@ amazon_prod:
   bucket: <%= Rails.application.credentials.aws[:prod][:bucket] %>
 ```
 
-Finally, specify which storage service should be used in each environment:
+Finally, specify which storage service should be used in each environment, i.e.,
+in __config/environments/development.rb__ and
+__config/environments/production.rb__:
 
 ```ruby
 # config/environments/development.rb
@@ -277,7 +284,8 @@ config.active_storage.service = :amazon_dev
 config.active_storage.service = :amazon_prod
 ```
 
-You did it! You should now be able to attach files through the console, which you will test in the next step.
+You did it! You should now be able to attach files through the console, which
+you will test in the next step.
 
 [video3]: https://vimeo.com/351474983
 [aws-regions]: http://docs.aws.amazon.com/general/latest/gr/rande.html
@@ -297,7 +305,7 @@ post.photo.attach(io: file, filename: '<your-filename>.jpg')
 post.photo.attached? # => true
 ```
 
-Check your `dev` bucket in the S3 console. If everything has been configured
+Check your `dev` bucket in the [S3 console]. If everything has been configured
 correctly, it should now contain a file! (If it does not, go back through the
 preceding steps to find the issue.)
 
@@ -306,7 +314,7 @@ The next test is to see whether or not you can retrieve the image. Create a
 `PostsController`. In a view, you can then access a post's photo like this:
 
 ```erb
-<%# app/views/posts/show.html.erb >
+<%# app/views/posts/show.html.erb %>
 
 <h1><%= @post.title %></h1>
 <img src="<%= @post.photo.url %>" alt="">
@@ -327,9 +335,8 @@ you see your image!
 You can display your image in an HTML file served up by Rails, but what if you
 want to access them in a React frontend?
 
-To see how to do this, you first need to set up your Rails app to act as a
-backend API. Start by changing the default port in __config/puma.rb__ from
-`3000` to `5000`:
+To do this, you first need to set up your Rails app to act as a backend API.
+Start by changing the default port in __config/puma.rb__ from `3000` to `5000`:
 
 ```rb
 # config/puma.rb
@@ -344,7 +351,7 @@ Next, configure the following `api` namespace in __config/routes.rb__:
 
 Rails.application.routes.draw do
   resources :posts, only: [:show]
-  namespace :api, defaults: {format: :json} do
+  namespace :api, defaults: { format: :json } do
     resources :posts, only: [:create, :index]
   end
 end
@@ -374,7 +381,8 @@ json.array! @posts do |post|
 end
 ```
 
-Rails should be good to go, now for React! In your root directory, run the following command:
+Rails should be good to go, now for React! In your root directory, run the
+following command:
 
 ```sh
 npx create-react-app frontend --template @appacademy/react-v17 --use-npm
@@ -386,7 +394,8 @@ In the resulting __frontend/package.json__, add the following `proxy` key:
 "proxy": "http://localhost:5000"
 ```
 
-Replace the content of __App.js__ with this code to fetch the posts from your backend whenever your app loads:
+Replace the content of __App.js__ with this code to fetch the posts from your
+backend whenever your app loads:
 
 ```js
 // frontend/src/App.js
@@ -417,6 +426,8 @@ In the same directory--this is a quick demo, after all--create a
 __PostIndex.js__ file to display your posts and their photos:
 
 ```js
+// frontend/src/PostIndex.js
+
 function PostIndex({posts}) {
   return (
     <ul>
@@ -455,6 +466,7 @@ First create a general post form in __frontend/src/Form.js__:
 
 ```js
 // frontend/src/Form.js
+
 import { useState } from 'react';
 
 function Form () {
@@ -505,7 +517,9 @@ function App() {
 }
 ```
 
-So far this form does not do much: you can enter a title and clear it by clicking `Make a newPost!`. To add file upload capabilities to the form, simply include an input of type `file`:
+So far this form does not do much: you can enter a title and clear it by
+clicking `Make a newPost!`. To add file upload capabilities to the form, simply
+include an input of type `file`:
 
 ```js
 // src/Form.js
@@ -527,7 +541,8 @@ appear on the form. Pretty impressive!
 
 Ultimately you are going to want to send the designated file to your backend for
 storage, so let's start to set that up. Create a state variable `photoFile` and
-initialize it to `null`. Then add an event handler `handleFile` that grabs the first file stored in the event and stores it in `photoFile`:
+initialize it to `null`. Then add an event handler `handleFile` that grabs the
+first file stored in the event and stores it in `photoFile`:
 
 ```js
 // src/Form.js
@@ -567,7 +582,10 @@ have confirmed that everything is working, go ahead and remove the `photoFile`
 > **Note:** This video uses React class components instead of hooks and jQuery's
 > `$.ajax` instead of `fetch`.
 
-Unfortunately, you cannot send files to your backend using simple JSON; you will instead need to send them as [FormData]. Fortunately, `FormData` is rather straightforward to configure. You simply create a new `FormData` instance and `append` whatever fields you need:
+Unfortunately, you cannot send files to your backend using simple JSON; you will
+instead need to send them as [FormData]. Fortunately, `FormData` is rather
+straightforward to configure. You simply create a new `FormData` instance and
+`append` whatever fields you need:
 
 ```js
 // src/Form.js
@@ -584,7 +602,10 @@ const handleSubmit = async e => {
 ```
 
 Two things are worth noting here. First, you only want to append `photo` if
-there is actually a photo to append. Second, as in your Rails forms, using the names `post[title]` and `post[photo]` will nest the `title` and `photo` values under the key of `post` in params, thereby enabling your request to pass through strong params.
+there is actually a photo to append. Second, as in your Rails forms, using the
+names `post[title]` and `post[photo]` will nest the `title` and `photo` values
+under the key of `post` in params, thereby enabling your request to pass through
+strong params.
 
 > **Note:** Alternatively, you could just use `title` and `photo` as the names
 > in `formData` and then have your Rails controller wrap those parameters under
@@ -628,6 +649,8 @@ const handleSubmit = async e => {
 To test this, add a simple `create` action to your `Api::PostsController` (you've already created the route):
 
 ```rb
+  # app/controllers/api/posts_controller.rb
+
   def create
     post = Post.new(post_params)
     if post.save
@@ -649,7 +672,9 @@ Try to create a new post with an image. (Remember, you set your
 have to worry about CSRF.) If it works, you should see `You did it!` in the
 console. Refresh your page and see your new post on the index!
 
-**NOTE:** If you are using a custom fetch function like `csrfFetch`, you must make sure that it does **NOT** set the `Content-Type` header if the body of the request is `FormData`. In other words, you need to do something like this:
+**NOTE:** If you are using a custom fetch function like `csrfFetch`, you must
+make sure that it does **NOT** set the `Content-Type` header if the body of the
+request is `FormData`. In other words, you need to do something like this:
 
 ```js
 if (options.method.toUpperCase() !== "GET") {
@@ -674,7 +699,8 @@ multi-part boundaries.)
 > **Note:** This video uses React class components instead of hooks and jQuery's
 > `$.ajax` instead of `fetch`.
 
-It would be nice to show users a preview of the image they have selected to upload. Let's implement that now.
+It would be nice to show users a preview of the image they have selected to
+upload. Let's implement that now.
 
 First, create a state variable `photoUrl` and initialize it to `null`.
 
@@ -682,12 +708,14 @@ To generate a (temporary) URL for the preview, create a [`FileReader`] instance,
 then invoke [`readAsDataURL`] with the `file` passed as the argument. This will
 trigger an `async` action. Define an `onload` property on the `FileReader`
 instance that points to a callback that will run after `readerAsDataURL`
-completes. Set the `photoFile` state to the `file` and the `photoUrl` state to
-`fileReader.result` (i.e., the result of `readAsDataURL`).
+completes. Inside this callback, set the `photoFile` state to the `file` and the
+`photoUrl` state to `fileReader.result` (i.e., the result of `readAsDataURL`).
 
 If you set up `handleFile` correctly, it should look something like this:
 
 ```js
+// src/Form.js
+
 const handleFile = e => {
   const file = e.currentTarget.files[0];
   if (file) {
@@ -737,6 +765,8 @@ do that? You just need to create a custom validation in your backend.
 Open your __app/models/post.rb__ and add the following validation:
 
 ```rb
+# app/models/post.rb
+
 validate ensure_photo
 
 # ...
@@ -752,11 +782,13 @@ end
 
 ## Step 10: Wrapping up
 
-Congratulations! You've successfully set up an app to use Amazon's S3 storage service. A few parting thoughts:
+Congratulations! You've successfully set up an app to use Amazon's S3 storage
+service. A few parting thoughts:
 
 1. Clearing the filename  
    If you want to clear the file name on submit, you need to set the input
-   element's `value` to `null`. [`useRef`] is a great way to do this. Import `useRef` along with `useState`, and declare the reference like this:
+   element's `value` to `null`. [`useRef`] is a great way to do this. Import
+   `useRef` along with `useState` and declare the reference like this:
 
    ```js
    // src/Form.js
@@ -764,13 +796,15 @@ Congratulations! You've successfully set up an app to use Amazon's S3 storage se
    const fileRef = useRef(null);
    ```
 
-   Assign this reference to `ref` when you declare the input element in the form itself:
+   Assign this reference to `ref` when you declare the input element in the form
+   itself:
 
    ```js
    <input type="file" ref={fileRef} onChange={handleFile}/>
    ```
 
-   This will store a link to the element in `fileRef.current`. You can then use this reference to update the value in your `handleSubmit` function:
+   This will store a link to the element in `fileRef.current`. You can then use
+   this reference to update the value in your `handleSubmit` function:
 
    ```js
    fileRef.current.value = null;
@@ -780,12 +814,12 @@ Congratulations! You've successfully set up an app to use Amazon's S3 storage se
    When deploying to a production environment like Heroku, you need to make sure
    that the new environment can successfully decrypt your
    __config/credentials.yml.enc__ file. To do that, Heroku will need access to
-   your Rails master key, which is found in __config/master.key__. **DON'T PUSH
+   your Rails master key, which is found in __config/master.key__. **DO NOT PUSH
    __master.key__ TO GITHUB!** Instead, set a config/environment variable on
    Heroku for `RAILS_MASTER_KEY` with the value set to the contents of
    __master.key__. (See the "Deploying to Heroku" reading for more information
    on setting config variables.)
 
-Now go forth and upload those images!
+Now go forth and store those images (avatars/files/etc.)!
 
 [`useRef`]: https://reactjs.org/docs/hooks-reference.html#useref
