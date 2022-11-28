@@ -6,7 +6,7 @@ class Api::PostsController < ActionController::API
   def create
     post = Post.new(post_params)
     if post.save
-      render json: {message: "You did it!"}
+      render json: { message: "You did it!" }
     else
       render json: post.errors.full_messages, status: 422
     end
@@ -15,6 +15,8 @@ class Api::PostsController < ActionController::API
   private
 
   def post_params
-    params.require(:post).permit(:title, :photo)
+    # This commented out code is for a single photo
+    # params.require(:post).permit(:title, :photo)
+    params.require(:post).permit(:title, :photo, images: [])
   end
 end

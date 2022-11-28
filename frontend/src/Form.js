@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 function Form () {
   const [title, setTitle] = useState ("");
   const [photoFile, setPhotoFile] = useState (null);
+  const [imageFiles, setImageFiles] = useState ([]);
   const [photoUrl, setPhotoUrl] = useState (null);
   const fileRef = useRef(null);
 
@@ -10,13 +11,16 @@ function Form () {
     setTitle(e.currentTarget.value);
   }
 
-  const handleFile = e => {
-    const file = e.currentTarget.files[0];
+  const handleFile = ({ currentTarget }) => {
+    const file = currentTarget.files[0];
     if (file) {
       const fileReader = new FileReader();
       fileReader.readAsDataURL(file);
       fileReader.onload = () => {
-        setPhotoFile(file);
+        currentTarget.multiple ?
+          setImageFiles([...imageFiles, file])
+          :
+          setPhotoFile(file);
         setPhotoUrl(fileReader.result);
       };
     }
@@ -29,6 +33,12 @@ function Form () {
     if (photoFile) {
       formData.append('post[photo]', photoFile);
     }
+    if (imageFiles.length !== 0) {
+      imageFiles.forEach(image => {
+        formData.append('post[images][]', image);
+      })
+    }
+
     const response = await fetch('/api/posts', {
       method: 'POST',
       body: formData
@@ -37,13 +47,14 @@ function Form () {
       const message = await response.json();
       console.log(message.message);
       setTitle("");
-      setPhotoFile(null);
+      setPhotoFile("");
+      setImageFiles([]);
       setPhotoUrl(null);
       fileRef.current.value = null;
     }
   }
 
-  const preview = photoUrl ? <img src={photoUrl} alt="" /> : null;
+  const preview = photoUrl ? <img src={photoUrl} alt="" height="100" /> : null;
   return (
     <form onSubmit={handleSubmit}>
       <label htmlFor="post-title">Title of Post</label>
@@ -51,7 +62,10 @@ function Form () {
         id="post-title"
         value={title}
         onChange={handleInput}/>
-      <input type="file" ref={fileRef} onChange={handleFile}/>
+      {/* To accept only a single file, uncomment the following line and */}
+      {/* comment out the line after. */}
+      {/* <input type="file" ref={fileRef} onChange={handleFile} /> */}
+      <input type="file" ref={fileRef} onChange={handleFile} multiple />
       <h3>Image preview</h3>
       {preview}
       <button>Make a new Post!</button>

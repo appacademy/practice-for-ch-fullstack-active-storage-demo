@@ -15,10 +15,10 @@ example, S3 bucket creation--see video 2--now shows all the options on a single
 page instead of having you click through a series of screens for different
 options.)
 
-You can find the code for this demo at the `Download Project` button at the
-bottom of this page. Note, though, that since __master.key__ is **NEVER** pushed
-to GitHub, you will need to set up new credentials for the app to run (see Step
-3).
+You can find the solution code for this demo at the `Download Project` button at
+the bottom of this page. Note, though, that since __master.key__ is **NEVER**
+pushed to GitHub, you will need to set up new credentials (and AWS buckets) for
+the app to run (see Step 3).
 
 ## Step 0a: Sign up for an AWS account
 
@@ -118,11 +118,37 @@ default and click the `Create bucket` button at the bottom of the page. Repeat
 to create your `prod` bucket.
 
 You now have space set aside on AWS, but you don't yet have permission to access
-it. For that, you need to create a new [Identity and Access Management
-(IAM)][IAM] user. Unlike a root user, an IAM user will have limited access and
-permissions within the account. You will define those permissions below.
+it. AWS controls permissions primarily through _policies_. (You can also use
+Access Control Lists--known as ACLs--to regulate permissions, but Amazon now
+discourages the use of ACLs in most cases.) For a good overview of policies and
+what they entail, see [here][policies].
 
-Head to the [IAM users console][iam-users] to create a new user. Name the user
+For S3, you can create _bucket policies_ and/or _user policies_. The reading for
+setting up your seeds bucket configures a bucket policy to make everything in
+the `-seeds` bucket public. For your `-dev` and `-prod` buckets, you will use
+user policies to grant permissions to specific users that you create for the
+purpose of interacting with your app.
+
+Note that you can combine bucket and user policies. If, for instance, you
+created a __seeds__ folder inside your `-dev` bucket, you could use a bucket
+policy to make everything in __seeds__ public while using user policies to
+enable your app--and your app alone--to read and write elsewhere in the bucket.
+Ultimately, how you choose to configure your permissions is up to you.
+
+As noted above, you will use user policies to set the permissions for your
+`-dev` and `-prod` buckets. First, however, you need to create a new [Identity
+and Access Management (IAM)][IAM] user.  An IAM user is a user that you create
+within your account, a sort of subset of your main account. Unlike a full root
+user, an IAM user will have limited access and permissions within the account.
+You define those permissions through user policies. (It is generally a good idea
+to create a new IAM user for each app.)
+
+> **Note:** For an IAM user to access buckets owned by a **different** root
+> owner, there must be **both** a user policy and a bucket policy in place
+> granting permission. As long as you own both the bucket and the IAM user,
+> however, one policy will suffice.
+
+To create a new user, head to the [IAM users console][iam-users]. Name the user
 `<your-app-name>-admin` or something similar. Select `Access key - Programmatic
 access` as the AWS credential type and proceed to `Next: Permissions`.
 
@@ -137,7 +163,7 @@ In the new browser tab, click the `JSON` tab and paste the following:
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "Stmt1420751757000",
+      "Sid": "AllowAccess",
       "Effect": "Allow",
       "Action": ["s3:*"],
       "Resource": [
@@ -149,10 +175,21 @@ In the new browser tab, click the `JSON` tab and paste the following:
 }
 ```
 
-Make sure to replace `<BUCKET-NAME-*>` with the appropriate bucket name, e.g.,
-`active-storage-demo-dev`. Click `Next: Tags` and then `Next: Review`. Give the
-policy whatever name you like (e.g., `s3-access-to-<name-of-project>`). After
-you save and create the policy, head back to the other tab where you are
+Make sure to replace `<BUCKET-NAME-*>` with the appropriate bucket names, e.g.,
+`active-storage-demo-dev` and `active-storage-demo-prod`. **These bucket names
+must exactly match the names of the buckets you created earlier.**
+
+The JSON object first tells AWS that the policy uses the `2012-10-17` version
+policy syntax (i.e., the current version; it hasn't been updated in a while...).
+The policy itself consists of a single `Statement` object. The `Statement`
+begins with an optional statement id (`Sid`) that can be (almost) anything you
+want. The following four key-value pairs then effectively `Allow`--not
+`Deny`--all actions (`"Action": ["s3:*"]`) in the listed buckets (`"Resource":
+["arn:aws:s3:::<BUCKET-NAME-DEV>/*", "arn:aws:s3:::<BUCKET-NAME-PROD>/*"]`).
+
+When you have entered your policy, click `Next: Tags` and then `Next: Review`.
+Give the policy whatever name you like (e.g., `s3-access-to-<name-of-project>`).
+After you save and create the policy, head back to the other tab where you are
 creating a new IAM user.
 
 Click the refresh button all the way to the right of the `Create Policy` button,
@@ -172,6 +209,7 @@ That's it! AWS should now be configured. Now you just have to convince Active
 Storage to use it!
 
 [video2]: https://vimeo.com/351474880
+[policies]: https://docs.aws.amazon.com/AmazonS3/latest/userguide/access-policy-language-overview.html
 [S3 console]: https://s3.console.aws.amazon.com/s3/home?region=us-east-1
 [IAM]: https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html
 [iam-users]: https://console.aws.amazon.com/iam/home?#/users
@@ -317,7 +355,7 @@ The next test is to see whether or not you can retrieve the image. Create a
 <%# app/views/posts/show.html.erb %>
 
 <h1><%= @post.title %></h1>
-<img src="<%= @post.photo.url %>" alt="">
+<img src="<%= url_for(@post.photo) %>" alt="">
 ```
 
 Boot up your server (`rails s`) and go to [`localhost:3000/posts/1`]. Hopefully
@@ -377,7 +415,7 @@ Finally, enable your `index` route to return JSON:
 
 json.array! @posts do |post|
   json.extract! post, :id, :title
-  json.photoUrl post.photo.url
+  json.photoUrl url_for(post.photo)
 end
 ```
 
@@ -500,7 +538,7 @@ export default Form;
 Import this `Form` into __App.js__ and render it above the `PostIndex`:
 
 ```js
-// src/App.js
+// frontend/src/App.js
 
 // ...
 import Form from './Form';
@@ -522,7 +560,7 @@ clicking `Make a newPost!`. To add file upload capabilities to the form, simply
 include an input of type `file`:
 
 ```js
-// src/Form.js
+// frontend/src/Form.js
 
 <form onSubmit={handleSubmit}>
   <label htmlFor="post-title">Title of Post</label>
@@ -545,7 +583,7 @@ initialize it to `null`. Then add an event handler `handleFile` that grabs the
 first file stored in the event and stores it in `photoFile`:
 
 ```js
-// src/Form.js
+// frontend/src/Form.js
 
 function Form () {
   const [photoFile, setPhotoFile] = useState (null);
@@ -588,7 +626,7 @@ straightforward to configure. You simply create a new `FormData` instance and
 `append` whatever fields you need:
 
 ```js
-// src/Form.js
+// frontend/src/Form.js
 
 const handleSubmit = async e => {
   e.preventDefault();
@@ -623,7 +661,7 @@ strong params.
 Once you have set up your `FormData`, send a `fetch` request:
 
 ```js
-// src/Form.js
+// frontend/src/Form.js
 
 const handleSubmit = async e => {
   e.preventDefault();
@@ -646,7 +684,8 @@ const handleSubmit = async e => {
 }
 ```
 
-To test this, add a simple `create` action to your `Api::PostsController` (you've already created the route):
+To test this, add a simple `create` action to your `Api::PostsController`
+(you've already created the route):
 
 ```rb
   # app/controllers/api/posts_controller.rb
@@ -654,7 +693,7 @@ To test this, add a simple `create` action to your `Api::PostsController` (you'v
   def create
     post = Post.new(post_params)
     if post.save
-      render json: {message: "You did it!"}
+      render json: { message: "You did it!" }
     else
       render json: post.errors.full_messages, status: 422
     end
@@ -714,7 +753,7 @@ completes. Inside this callback, set the `photoFile` state to the `file` and the
 If you set up `handleFile` correctly, it should look something like this:
 
 ```js
-// src/Form.js
+// frontend/src/Form.js
 
 const handleFile = e => {
   const file = e.currentTarget.files[0];
@@ -733,10 +772,10 @@ Define a variable `preview` right before the return statement and add the image
 preview to the form:
 
 ```js
-// src/Form.js
+// frontend/src/Form.js
 
   // ...
-  const preview = photoUrl ? <img src={photoUrl} alt="" /> : null;
+  const preview = photoUrl ? <img src={photoUrl} alt="" height="200" /> : null;
   return (
     <form onSubmit={handleSubmit}>
       <label htmlFor="post-title">Title of Post</label>
@@ -780,7 +819,130 @@ end
 
 [video9]: https://vimeo.com/278727131
 
-## Step 10: Wrapping up
+## Step 10: A default image
+
+It is sometimes nice to have a default image that can be used until a user decides to upload their own image. (Think avatars.) If you wanted to add a default image to posts in the current app, you could do it by writing a method to run before validations that loads a default image if no image is attached:
+
+```rb
+# app/models/post.rb
+
+require "open-uri"
+
+# ...
+
+before validation :generate_default_pic
+
+# ...
+
+def generate_default_pic
+  unless self.photo.attached?
+    # Presumably you have already stored a default pic in your seeds bucket
+    file = URI.open("https://<your-app-name>-seeds.s3.amazonaws.com/default_pic.jpg");
+    self.photo.attach(io: file, filename: "default.jpg")
+  end
+end
+```
+
+## Step 11: Multiple files
+
+Suppose that you want a post to be able to contain multiple images. How can you
+do this?
+
+1. Add a `has_many_attached` association to the model:
+
+   ```rb
+   # app/models/post.rb
+   
+   has_many_attached :images
+   ```
+
+2. Update the strong params in your controller to accept an array of files as a
+   param:
+
+   ```rb
+   # app/controllers/api/posts_controller.rb
+   
+   def post_params
+     params.require(:post).permit(:title, images: [])
+   end
+   ```
+
+3. In your Jbuilder view, map over each attached file and grab their URLs:
+
+   ```rb
+   # app/views/api/posts/index.json.jbuilder
+
+   json.imageUrls post.images.map { |file| url_for(file) }
+   ```
+
+4. On your form, add the `multiple` attribute to the file input to allow
+   multiple attachments:
+
+   ```js
+   // frontend/src/Form.js
+
+   <input type="file" ref={fileRef} onChange={handleFile} multiple />
+   ```
+
+5. Still in __Form.js__, create an array of image files and append each file to the same key in the `formData` object, one at a time:
+
+   ```js
+   // frontend/src/Form.js
+
+   const [imageFiles, setImageFiles] = useState ([]);
+
+   // ...
+
+   const handleFile = ({ currentTarget }) => {
+     const file = currentTarget.files[0];
+     if (file) {
+       const fileReader = new FileReader();
+       fileReader.readAsDataURL(file);
+       fileReader.onload = () => {
+         setImageFiles([...imageFiles, file]) // <-- Change this line
+         setPhotoUrl(fileReader.result);
+       };
+     }
+   }
+
+   const handleSubmit = async e => {
+     e.preventDefault();
+     const formData = new FormData();
+     formData.append('post[title]', title);
+     if (imageFiles.length !== 0) {
+       imageFiles.forEach(image => {
+         formData.append('post[images][]', image);
+       })
+     }
+     // ...
+   ```
+
+   Remember to `setImageFiles([]);` on a successful response too!
+
+   (The UI here is not great, but you can figure out how to improve the user
+   experience when uploading multiple files.)
+
+6. Finally, enable your index to show all images. (Displaying all images in an
+   index is probably not ideal, but this is just a demo!)
+
+   ```js
+   // frontend/src/PostIndex.js
+
+   <ul>
+     {posts.map(post => {
+       return (
+         <li key={post.id}>
+           <h2>{post.title}</h2>
+           {post.imageUrls.map(imageUrl => (
+             <img key={imageUrl} src={imageUrl} alt="" height="300" />
+           ))}
+         </li>
+       );
+     })}
+   </ul>
+   ```
+
+## Step 12: Wrapping up
 
 Congratulations! You've successfully set up an app to use Amazon's S3 storage
 service. A few parting thoughts:
@@ -791,7 +953,7 @@ service. A few parting thoughts:
    `useRef` along with `useState` and declare the reference like this:
 
    ```js
-   // src/Form.js
+   // frontend/src/Form.js
    
    const fileRef = useRef(null);
    ```
@@ -811,14 +973,14 @@ service. A few parting thoughts:
    ```
 
 2. Deploying to production  
-   When deploying to a production environment like Heroku, you need to make sure
+   When deploying to a production environment like Render, you need to make sure
    that the new environment can successfully decrypt your
-   __config/credentials.yml.enc__ file. To do that, Heroku will need access to
+   __config/credentials.yml.enc__ file. To do that, Render will need access to
    your Rails master key, which is found in __config/master.key__. **DO NOT PUSH
-   __master.key__ TO GITHUB!** Instead, set a config/environment variable on
-   Heroku for `RAILS_MASTER_KEY` with the value set to the contents of
-   __master.key__. (See the "Deploying to Heroku" reading for more information
-   on setting config variables.)
+   __master.key__ TO GITHUB!** Instead, set an environment variable on
+   Render for `RAILS_MASTER_KEY` with the value set to the contents of
+   __master.key__. (See the "Deploying to Render" reading for more information
+   on setting environment variables.)
 
 Now go forth and store those images (avatars/files/etc.)!
 
