@@ -11,8 +11,8 @@ uploaded by users.
 
 Why would you want to use an AWS S3 bucket for static content? While Render's or
 Heroku's PostgreSQL database is good for storing most of your data in an
-organized format, it's not optimized for storing large files like images,
-music, or video files that you might want to use in your application. AWS's S3 is an
+organized format, it's not optimized for storing large files like images, music,
+or video files that you might want to use in your application. AWS's S3 is an
 object storage service which allows you to store images, music files, or any
 other kind of large file that PostgreSQL wouldn't be able to store well. Using
 AWS or some other content delivery network (CDN) will allow you to use larger
@@ -185,9 +185,9 @@ Bench.first(3).each_with_index do |bench, index|
 end
 ```
 
-**Note:** You may sometimes see older code that uses `open` instead of
-`URI.open`. As of Ruby 3.0, `open-uri` no longer overwrites the global
-`Kernel#open`, so `open` will no longer work.
+> **Note:** You may sometimes see older code that uses `open` instead of
+> `URI.open`. As of Ruby 3.0, `open-uri` no longer overwrites the global
+> `Kernel#open`, so `open` will no longer work.
 
 Of course, in this case, you will likely want your app to store these
 photos--and any photos that users upload when creating `Bench` instances--in a

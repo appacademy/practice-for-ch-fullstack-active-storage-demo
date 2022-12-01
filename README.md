@@ -821,7 +821,10 @@ end
 
 ## Step 10: A default image
 
-It is sometimes nice to have a default image that can be used until a user decides to upload their own image. (Think avatars.) If you wanted to add a default image to posts in the current app, you could do it by writing a method to run before validations that loads a default image if no image is attached:
+It is sometimes nice to have a default image that can be used until a user
+decides to upload their own image. (Think avatars.) If you wanted to add a
+default image to posts in the current app, you could do it by writing a method
+to run before validations that loads a default image if no image is attached:
 
 ```rb
 # app/models/post.rb
@@ -884,7 +887,8 @@ do this?
    <input type="file" ref={fileRef} onChange={handleFile} multiple />
    ```
 
-5. Still in __Form.js__, create an array of image files and append each file to the same key in the `formData` object, one at a time:
+5. Still in __Form.js__, create an array of image files and append each file to
+   the same key in the `formData` object, one at a time:
 
    ```js
    // frontend/src/Form.js
