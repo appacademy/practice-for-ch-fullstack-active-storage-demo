@@ -119,7 +119,7 @@ to create your `prod` bucket.
 
 You now have space set aside on AWS, but you don't yet have permission to access
 it. AWS controls permissions primarily through _policies_. (You can also use
-Access Control Lists--known as ACLs--to regulate permissions, but Amazon now
+_Access Control Lists_--known as ACLs--to regulate permissions, but Amazon now
 discourages the use of ACLs in most cases.) For a good overview of policies and
 what they entail, see [here][policies].
 
@@ -183,7 +183,7 @@ The JSON object first tells AWS that the policy uses the `2012-10-17` version
 policy syntax (i.e., the current version; it hasn't been updated in a while...).
 The policy itself consists of a single `Statement` object. The `Statement`
 begins with an optional statement id (`Sid`) that can be (almost) anything you
-want. The following four key-value pairs then effectively `Allow`--not
+want. The following three key-value pairs then effectively `Allow`--not
 `Deny`--all actions (`"Action": ["s3:*"]`) in the listed buckets (`"Resource":
 ["arn:aws:s3:::<BUCKET-NAME-DEV>/*", "arn:aws:s3:::<BUCKET-NAME-PROD>/*"]`).
 
