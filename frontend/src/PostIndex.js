@@ -1,4 +1,4 @@
-function PostIndex({posts}) {
+function PostIndex({ posts }) {
   return (
     <ul>
       {posts.map(post => {
@@ -7,7 +7,7 @@ function PostIndex({posts}) {
             <h2>{post.title}</h2>
             <img src={post.photoUrl} alt="" />
             {post.imageUrls.map(imageUrl => (
-              <img key={imageUrl} src={imageUrl} alt="" height="300" />
+              <img key={imageUrl} src={imageUrl} alt="" />
             ))}
           </li>
         );

@@ -4,6 +4,7 @@ import Form from './Form';
 
 function App() {
   const [posts, setPosts] = useState([]);
+  const [newPost, setNewPost] = useState(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -13,9 +14,14 @@ function App() {
     fetchPosts();
   }, []);
 
+  useEffect(() => {
+    if (newPost)
+      setPosts(prevPosts => [newPost, ...prevPosts])
+  }, [newPost])
+
   return (
     <>
-      <Form />
+      <Form setNewPost={setNewPost} />
       <PostIndex posts={posts} />
     </>
   );

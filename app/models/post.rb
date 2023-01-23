@@ -11,9 +11,8 @@ require "open-uri"
 
 class Post < ApplicationRecord
   validates :title, presence: true
-  # Probably don't need both of the following validations, but they are both
-  # included here for completeness.
-  validate :generate_default_pic, :ensure_photo
+  # validate :ensure_photo
+  # before_validation :generate_default_pic
 
   has_one_attached :photo
   has_many_attached :images
