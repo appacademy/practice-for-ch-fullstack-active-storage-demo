@@ -38,8 +38,8 @@ do this?
    # app/views/api/posts/_post.json.jbuilder
 
    json.extract! post, :id, :title
-   json.photoUrl post.photo.attached? ? url_for(post.photo) : nil
-   json.imageUrls post.images.map { |file| url_for(file) } # <-- ADD THIS LINE
+   json.photoUrl post.photo.attached? ? post.photo.url : nil
+   json.imageUrls post.images.map { |file| file.url } # <-- ADD THIS LINE
    ```
 
 4. On your form, add the `multiple` attribute to the file input to allow

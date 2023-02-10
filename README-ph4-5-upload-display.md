@@ -6,12 +6,14 @@ image.
 ## Phase 4: Uploading And Retrieving Photos
 
 Now is the moment of truth: can you upload a photo? Copy a __.jpg__ image on
-your computer into the __app/assets/images__ folder. Then try the following in
-the Rails console:
+your computer into the __app/assets/images__ folder. (The folder doesn't matter
+for this test. If you don't have an __app/assets/images__ folder or don't want
+to move an image there, just make sure you use the full path of the image on the
+second line below.) Then try the following in the Rails console:
 
 ```ruby
 post = Post.create(title: "First post!")
-file = File.open('app/assets/images/<your-filename>.jpg')
+file = File.open('app/assets/images/<your-filename>.jpg') # <- Adjust the path here if the image is not in app/assets/images
 post.photo.attach(io: file, filename: '<your-filename>.jpg')
 post.photo.attached? # => true
 ```
@@ -40,7 +42,7 @@ In a view, you can then access a post's photo like this:
 <%# app/views/posts/show.html.erb %>
 
 <h1><%= @post.title %></h1>
-<img src="<%= url_for(@post.photo) %>" alt="">
+<img src="<%= @post.photo.url %>" alt="">
 ```
 
 Boot up your server (`rails s`) and go to [`localhost:3000/posts/1`]. Hopefully
@@ -107,7 +109,7 @@ end
 # app/views/api/posts/_post.json.jbuilder
 
 json.extract! post, :id, :title
-json.photoUrl post.photo.attached? ? url_for(post.photo) : nil
+json.photoUrl post.photo.attached? ? post.photo.url : nil
 ```
 
 Rails should be good to go, now for React! In your root directory, run the

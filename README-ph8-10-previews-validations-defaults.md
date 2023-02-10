@@ -14,7 +14,7 @@ __Form.js__.
 To generate a (temporary) URL for the preview, create a [`FileReader`] instance,
 then invoke [`readAsDataURL`] with the `file` passed as the argument. This will
 trigger an `async` action. Define an `onload` property on the `FileReader`
-instance that points to a callback that will run after `readerAsDataURL`
+instance that points to a callback that will run after `readAsDataURL`
 completes. Inside this callback, set the `photoUrl` state to `fileReader.result`
 (i.e., the result of `readAsDataURL`).
 

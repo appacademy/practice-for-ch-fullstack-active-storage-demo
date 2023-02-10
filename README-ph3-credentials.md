@@ -90,7 +90,8 @@ amazon_prod:
 
 Finally, specify which storage service should be used in each environment, i.e.,
 in __config/environments/development.rb__ and
-__config/environments/production.rb__:
+__config/environments/production.rb__ change the `config.active_storage.service
+= :local` line to the following, respectively:
 
 ```ruby
 # config/environments/development.rb
